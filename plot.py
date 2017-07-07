@@ -9,8 +9,6 @@ compose = lambda f: lambda g: lambda *a, **k: f(g(*a, **k))
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-plotopts = {'linewidth':0.5}
-
 @compose(tuple)
 def trimcuts(t, cuts):
     for cut in cuts:
@@ -18,6 +16,7 @@ def trimcuts(t, cuts):
             if len(cut) > 1:
                 yield cut[1:]
 
+plotopts = {'linewidth':0.5}
 
 def plotnext(px, py, plevel, cuts=(), max_level=5, removed=False):
     if plevel > max_level:
@@ -45,20 +44,20 @@ def plotcuts(px, py, plevel, cuts=(), max_level=5):
     r = False
     if plevel < 16:
         print('\t' * plevel + 'Level', str(plevel))
-    for val, shift in (('0', -sx), ('1', sx)):
+    for val, shift, color in (('0', -sx, 'blue'), ('1', sx, 'red')):
         qx = px + shift
         if val not in cuts:
             c = plotcuts(qx, qy, plevel + 1, trimcuts(val, cuts), max_level)
             if c:
-                ax.plot((px, qx), (py, qy), color='black', **plotopts)
+                ax.plot((px, qx), (py, qy), color=color, linewidth=2)
                 r = True
         else:
-            ax.plot((px, qx), (py, qy), color='red', **plotopts)
-            return True
+            ax.plot((px, qx), (py, qy), color='grey', **plotopts)
+            r = True
+    plt.show()
     return r
 
 
 #plotnext(0, 0, 1, cuts, 10)
 plotcuts(0, 0, 1, cuts, 26)
-plt.show()
 
