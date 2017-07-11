@@ -93,6 +93,7 @@ def kleene():
             print(fmt.format(n, len(machines)), file=f)
             f.flush()
 
-for cut in kleene():
-    print("Cut {:<16} from machine {:<32} after {:<16} iterations".format(*cut))
-    sys.stdout.flush()
+if __name__ == '__main__':
+    for cut in kleene():
+        print("Cut {:<16} from machine {:<32} after {:<16} iterations".format(*cut))
+        sys.stdout.flush()

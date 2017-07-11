@@ -1,20 +1,21 @@
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-from cuts import cuts
+from cuts import cuts as cached_cuts
+from kleene import kleene
 
-def plot_line(px, py, qx, qy, color, linewidth=2):
-    ax.plot((px, qx), (py, qy), color=color, linewidth=linewidth)
+def plot_line(px, py, qx, qy, color):
+    ax.plot((px, qx), (py, qy), color=color, linewidth=1)
 
 plotted = set()
-def plot_path(cut, recursed=False):
+def plot_path(cut):
     if cut in plotted:
         return
     plotted.add(cut)
     py = 1 - len(cut)
     px = 0
     for i in range(1, len(cut)):
-        yield from plot_path(cut[:i], True)
+        yield from plot_path(cut[:i])
         if cut[i-1] == '0':
             px -= 1 / (2 ** i)
         else:
@@ -26,43 +27,23 @@ def plot_path(cut, recursed=False):
     else:
         qx = px + 1 / (2 ** len(cut))
         color = 'red'
-    if recursed:
-        linewidth = 1
-    else:
-        color = 'black'
-        linewidth = 0.5
-    yield px, py, qx, qy, color, linewidth
+    yield px, py, qx, qy, color
 
-def plot_path_no_tip(cut, recursed=False):
-    if cut in plotted:
-        return
-    plotted.add(cut)
-    py = 1 - len(cut)
-    px = 0
-    for i in range(1, len(cut)):
-        yield from plot_path_no_tip(cut[:i], True)
-        if cut[i-1] == '0':
-            px -= 1 / (2 ** i)
-        else:
-            px += 1 / (2 ** i)
-    if not recursed:
-        return
-    qy = py - 1
-    if cut[-1] == '0':
-        qx = px - 1 / (2 ** len(cut))
-        color = 'blue'
-    else:
-        qx = px + 1 / (2 ** len(cut))
-        color = 'red'
-    yield px, py, qx, qy, color, 1
+
+tree = kleene()
 
 def update(framenum):
-    for args in plot_path_no_tip(cuts[framenum]):
+    cut, _, _ = next(tree)
+    for args in plot_path(cut[:-1]):
         plot_line(*args)
 
+def update_cached(framenum):
+    for args in plot_path(cached_cuts[framenum][:-1]):
+        plot_line(*args)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-animation = FuncAnimation(fig, update, interval=1, frames=100)
+_ = FuncAnimation(fig, update_cached, interval=1, frames=len(cached_cuts))
+#_ = FuncAnimation(fig, update, interval=1)
 plt.show()
 

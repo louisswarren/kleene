@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.lines as lines
 
 from cuts import cuts
 

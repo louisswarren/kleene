@@ -98,6 +98,7 @@ def example2():
     '''Same as example().'''
     run(873132658028094286652476778967260321)
 
-example()
-example2()
+if __name__ == '__main__':
+    example()
+    example2()
 
