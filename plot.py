@@ -54,10 +54,9 @@ def plotcuts(px, py, plevel, cuts=(), max_level=5):
         else:
             ax.plot((px, qx), (py, qy), color='grey', **plotopts)
             r = True
-    plt.show()
     return r
 
 
 #plotnext(0, 0, 1, cuts, 10)
-plotcuts(0, 0, 1, cuts, 26)
-
+plotcuts(0, 0, 1, cuts, 6)
+plt.show()
