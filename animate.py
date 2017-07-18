@@ -1,4 +1,4 @@
-USE_CACHE = True
+USE_CACHE = False
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
