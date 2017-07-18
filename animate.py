@@ -1,3 +1,5 @@
+USE_CACHE = True
+
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
@@ -5,14 +7,14 @@ from cuts import cuts as cached_cuts
 from kleene import kleene
 
 def plot_line(px, py, qx, qy, color):
-    ax.plot((px, qx), (py, qy), color=color, linewidth=1)
+    ax.plot((px, qx), (py, qy), color=color, linewidth=(-1/qy)**0.5)
 
 plotted = set()
 def plot_path(cut):
     if cut in plotted:
         return
     plotted.add(cut)
-    py = 1 - len(cut)
+    py = (1 - len(cut)) / len(cut) ** 0.5
     px = 0
     for i in range(1, len(cut)):
         yield from plot_path(cut[:i])
@@ -20,7 +22,7 @@ def plot_path(cut):
             px -= 1 / (2 ** i)
         else:
             px += 1 / (2 ** i)
-    qy = py - 1
+    qy = - len(cut) / (len(cut) + 1) ** 0.5
     if cut[-1] == '0':
         qx = px - 1 / (2 ** len(cut))
         color = 'blue'
@@ -43,7 +45,11 @@ def update_cached(framenum):
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-_ = FuncAnimation(fig, update_cached, interval=1, frames=len(cached_cuts))
-#_ = FuncAnimation(fig, update, interval=1)
+ax.axis('off')
+
+if USE_CACHE:
+    _ = FuncAnimation(fig, update_cached, interval=1, frames=len(cached_cuts))
+else:
+    _ = FuncAnimation(fig, update, interval=1)
 plt.show()
 
