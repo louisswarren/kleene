@@ -141,7 +141,7 @@ def kleene_cuts():
             if i in outputs and len(outputs[i]) == cut_depth + 1:
                 cut_depth += 1
                 cuts[cut_depth] = outputs[i]
-                yield cuts[cut_depth]
+                yield cuts[cut_depth], i
                 # Cut all running machines that start with this cut
                 for j in list(machines):
                     if outputs[j].startswith(cuts[cut_depth]):
@@ -150,6 +150,7 @@ def kleene_cuts():
         machines[n] = htm(get_prog(n))
         n += 1
 
-for k in kleene_cuts():
-    print(k)
+if __name__ == '__main__':
+    for k in kleene_cuts():
+        print(k)
 

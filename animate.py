@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 from cuts import cuts as cached_cuts
-from kleene import kleene
+from kleene import kleene_cuts as kleene
 
 def plot_line(px, py, qx, qy, color):
     ax.plot((px, qx), (py, qy), color=color, linewidth=(-1/qy)**0.5)
@@ -35,7 +35,7 @@ def plot_path(cut):
 tree = kleene()
 
 def update(framenum):
-    cut, _, _ = next(tree)
+    cut, _ = next(tree)
     for args in plot_path(cut[:-1]):
         plot_line(*args)
 
