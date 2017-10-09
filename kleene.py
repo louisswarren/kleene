@@ -62,13 +62,17 @@ def transition(instr, jumps, tape, ptr, ctr):
     return output, tape, ptr, ctr
 
 
-def htm(instrs, max_runfactor=100):
+def htm(instrs, max_runfactor=0.3):
     '''Co-routine for an automatically halting machine.
 
     Not a real turing machine, as it halts after a too-long runtime or infinite
-    non-outputting loop.'''
+    non-outputting loop. The number of transitions between outputs is bounded
+    proportionally to the program length. Higher max_runfactor makes
+    diagonalisation slower.  Lower max_runfactor could limit machine
+    complexity, preventing the search for new cuts. In practice, a value of at
+    least one appears to work.'''
     state_history = set()
-    max_runtime = len(instrs) * max_runfactor
+    max_runtime = int(len(instrs) * max_runfactor)
     tape, ptr, ctr = Tape(), 0, 0
     jumps = build_jump_table(instrs)
     while ctr < len(instrs):
@@ -122,26 +126,27 @@ def kleene_cuts():
         for i in list(machines.keys()):
             try:
                 output = next(machines[i])
-                if output is not None:
-                    outputs[i] += str(output)
-                    # Check if this machine has reached a cut
-                    if outputs[i] == cuts.get(len(outputs[i])):
-                        del machines[i]
-                        del outputs[i]
-                if len(outputs[i]) == cut_depth + 1:
-                    cut_depth += 1
-                    cuts[cut_depth] = outputs[i]
-                    yield cuts[cut_depth]
-                    # Cut all running machines that start with this cut
-                    for j in list(machines):
-                        if outputs[j].startswith(cuts[cut_depth]):
-                            del machines[j]
-                            del outputs[i]
             except StopIteration:
                 del machines[i]
                 if i in outputs:
                     del outputs[i]
-        if not (n % 1000): print(len(machines), len(outputs))
+                continue
+            if output is not None:
+                outputs[i] += str(output)
+                # Check if this machine has reached a cut
+                if outputs[i] == cuts.get(len(outputs[i])):
+                    del machines[i]
+                    del outputs[i]
+                    continue
+            if i in outputs and len(outputs[i]) == cut_depth + 1:
+                cut_depth += 1
+                cuts[cut_depth] = outputs[i]
+                yield cuts[cut_depth]
+                # Cut all running machines that start with this cut
+                for j in list(machines):
+                    if outputs[j].startswith(cuts[cut_depth]):
+                        del machines[j]
+                        del outputs[i]
         machines[n] = htm(get_prog(n))
         n += 1
 
