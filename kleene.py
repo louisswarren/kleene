@@ -76,7 +76,7 @@ def htm(instrs, max_runfactor=100):
         yield output
         if output is not None:
             state_history = set()
-        state = (tuple(tape), ptr, ctr)
+        state = (str(tape), ptr, ctr)
         if state in state_history or len(state_history) > max_runtime:
             return
         else:
@@ -127,6 +127,7 @@ def kleene_cuts():
                     # Check if this machine has reached a cut
                     if outputs[i] == cuts.get(len(outputs[i])):
                         del machines[i]
+                        del outputs[i]
                 if len(outputs[i]) == cut_depth + 1:
                     cut_depth += 1
                     cuts[cut_depth] = outputs[i]
@@ -135,9 +136,12 @@ def kleene_cuts():
                     for j in list(machines):
                         if outputs[j].startswith(cuts[cut_depth]):
                             del machines[j]
+                            del outputs[i]
             except StopIteration:
                 del machines[i]
-#        print(len(machines))
+                if i in outputs:
+                    del outputs[i]
+        if not (n % 1000): print(len(machines), len(outputs))
         machines[n] = htm(get_prog(n))
         n += 1
 
