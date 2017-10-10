@@ -35,7 +35,7 @@ def plot_path(cut):
 tree = kleene()
 
 def update(framenum):
-    cut, _ = next(tree)
+    cut = next(tree)
     for args in plot_path(cut[:-1]):
         plot_line(*args)
 
