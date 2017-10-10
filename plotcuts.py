@@ -1,9 +1,6 @@
-USE_CACHE = False
-
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-from cuts import cuts as cached_cuts
 from kleene import kleene_cuts as kleene
 
 def plot_line(px, py, qx, qy, color):
@@ -47,9 +44,6 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.axis('off')
 
-if USE_CACHE:
-    _ = FuncAnimation(fig, update_cached, interval=1, frames=len(cached_cuts))
-else:
-    _ = FuncAnimation(fig, update, interval=1)
+_ = FuncAnimation(fig, update, interval=1)
 plt.show()
 
