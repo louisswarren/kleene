@@ -62,7 +62,7 @@ def transition(instr, jumps, tape, ptr, ctr):
     return output, tape, ptr, ctr
 
 
-def htm(instrs, max_runfactor=0.3):
+def htm(instrs, max_runfactor=1):
     '''Co-routine for an automatically halting machine.
 
     Not a real turing machine, as it halts after a too-long runtime or infinite
@@ -150,7 +150,19 @@ def kleene_cuts():
         machines[n] = htm(get_prog(n))
         n += 1
 
+def is_in_tree(a):
+    '''Determine if a given finite sequence is in the Kleene tree.
+
+    This function is computable, so the tree is computable.'''
+    cuts = kleene_cuts()
+    for cut, _ in cuts:
+        if a.startswith(cut):
+            return False
+        if len(cut) > len(a):
+            return True
+
 if __name__ == '__main__':
     for k in kleene_cuts():
         print(k)
+
 
