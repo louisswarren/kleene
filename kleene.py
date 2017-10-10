@@ -141,7 +141,7 @@ def kleene_cuts():
             if i in outputs and len(outputs[i]) == cut_depth + 1:
                 cut_depth += 1
                 cuts[cut_depth] = outputs[i]
-                yield cuts[cut_depth], i
+                yield cuts[cut_depth]
                 # Cut all running machines that start with this cut
                 for j in list(machines):
                     if outputs[j].startswith(cuts[cut_depth]):
@@ -149,6 +149,17 @@ def kleene_cuts():
                         del outputs[i]
         machines[n] = htm(get_prog(n))
         n += 1
+
+class CutContainer:
+    '''Container for deciding if a given segment is in the cut enumeration.'''
+    def __init__(self):
+        self.cuts = kleene_cuts()
+        self.found = set()
+
+    def __contains__(self, seg):
+        while len(self.found) + 1 < len(seg):
+            self.found.add(next(self.cuts))
+        return seg in self.found
 
 def is_in_tree(a):
     '''Determine if a given finite sequence is in the Kleene tree.
