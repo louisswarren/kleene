@@ -71,6 +71,7 @@ def htm(instrs, max_runfactor=1):
     diagonalisation slower.  Lower max_runfactor could limit machine
     complexity, preventing the search for new cuts. In practice, a value of at
     least one appears to work.'''
+    if I.OutputVal not in instrs: return
     state_history = set()
     max_runtime = int(len(instrs) * max_runfactor)
     tape, ptr, ctr = Tape(), 0, 0
