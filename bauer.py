@@ -61,46 +61,39 @@ def transition(instr, jumps, tape, ptr, ctr):
     ctr += 1
     return output, tape, ptr, ctr
 
+@compose(reversed)
+@compose(tuple)
 def to_base(n, b):
-    s = ''
     while n:
-        s = str(n % b) + s
+        yield n % b
         n //= b
-    return s
 
 def get_prog(index):
     '''Get the program for a given index.'''
-    return to_base(index, 5)
+    return ''.join(map(str, to_base(index, 5)))
 
 
 def computable_function(n, m):
     '''Co-routine for the nth computable function, on imput m.'''
     instrs = get_prog(n)
     if I.OutputVal not in instrs: return
-    state_history = set()
     tape, ptr, ctr = Tape(to_base(m, 2)), 0, 0
     jumps = build_jump_table(instrs)
     while ctr < len(instrs):
         output, tape, ptr, ctr = transition(instrs[ctr], jumps, tape, ptr, ctr)
-        yield output
         if output is not None:
-            state_history = set()
-        state = (str(tape), ptr, ctr)
-        if state in state_history:
+            yield int(output)
             return
         else:
-            state_history.add(state)
+            yield output
 
 def nontotal_function(n):
     '''Computable partial function which differs from every total function.'''
     for step in computable_function(n, n):
         if step is None:
             yield
-        elif step == '1':
-            yield '0'
-            return
         else:
-            yield '1'
+            yield 1 - step
             return
 
 def approximate_nontotal_function(n, k):
