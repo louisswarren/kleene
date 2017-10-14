@@ -103,4 +103,20 @@ def approximate_nontotal_function(n, k):
             return output
     return 'abort'
 
+def kleene_tree():
+    last_layer = [()]
+    while True:
+        layer = []
+        for parent in last_layer:
+            for node in (parent + (0,), parent + (1,)):
+                k = len(node)
+                result = approximate_nontotal_function(k, k)
+                if result == 'abort' or result == node[-1]:
+                    layer.append(node)
+                    yield node
+        last_layer = layer
+
+if __name__ == '__main__':
+    for node in kleene_tree():
+        print(''.join(map(str, node)))
 
