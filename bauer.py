@@ -103,15 +103,23 @@ def approximate_nontotal_function(n, k):
             return output
     return 'abort'
 
+mem = {}
+def memoized_approx(n, k):
+    if n not in mem:
+        r = approximate_nontotal_function(n, k)
+        if r == 'abort':
+            return r
+        mem[n] = r
+    return mem[n]
+
+
 def kleene_tree():
     last_layer = [()]
     while True:
         layer = []
         for parent in last_layer:
             for node in (parent + (0,), parent + (1,)):
-                k = len(node)
-                result = approximate_nontotal_function(k, k)
-                if result == 'abort' or result == node[-1]:
+                if all(memoized_approx(k + 1, len(node)) in ('abort', node[k]) for k in range(len(node))):
                     layer.append(node)
                     yield node
         last_layer = layer
