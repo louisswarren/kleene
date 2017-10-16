@@ -29,9 +29,16 @@ tree = kleene_tree()
 
 x_positions = {() : 0}
 
-def update(framenum):
-    node = next(tree)
+def plot_recursive(node):
+    if node[:-1] not in x_positions:
+        plot_recursive(node[:-1])
     x_positions[node] = plot_segment(node, x_positions[node[:-1]])
+
+def update(framenum):
+    _, node = next(tree)
+    if node in x_positions:
+        return
+    plot_recursive(node)
 
 
 _ = FuncAnimation(fig, update, interval=1)
