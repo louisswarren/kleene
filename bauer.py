@@ -104,21 +104,16 @@ def approximate_nontotal_function(n, k):
     return 'abort'
 
 def kleene_tree():
-    last_layer = [((),())]
+    last_layer = [()]
     while True:
         layer = []
-        for parent, parent_pos in last_layer:
-            k = len(parent) + 1
-            result = approximate_nontotal_function(k, k)
-            if result == 'abort':
-                # Left and right branches are the same - condense
-                layer.append((parent + (0, ), parent_pos))
-            else:
-                for node in (parent + (0,), parent + (1,)):
-                    if result == node[-1]:
-                        result = node, parent_pos + (node[-1],)
-                        layer.append(result)
-                        yield result
+        for parent in last_layer:
+            for node in (parent + (0,), parent + (1,)):
+                k = len(node)
+                result = approximate_nontotal_function(k, k)
+                if result == 'abort' or result == node[-1]:
+                    layer.append(node)
+                    yield node
         last_layer = layer
 
 if __name__ == '__main__':
