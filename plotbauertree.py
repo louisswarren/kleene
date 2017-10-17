@@ -30,21 +30,17 @@ tree = kleene_tree()
 
 x_positions = {() : 0}
 
-def draw(n):
-    for k in range(n):
+def draw():
+    write_layer = 10
+    while True:
         node = next(tree)
+
+        if len(node) >= write_layer:
+            filename = 'bauer{}.svg'.format(len(node))
+            fig.savefig(filename)
+            print("Saved", filename)
+            write_layer = len(node) + 1
+
         x_positions[node] = plot_segment(node, x_positions[node[:-1]])
-        if (k % 1000) == 0:
-            print("Plotting ... [{} / {}]".format(k, n))
 
-
-if len(sys.argv) == 3:
-    draw(2 ** int(sys.argv[1]))
-    fig.savefig(sys.argv[2])
-elif len(sys.argv) == 1:
-    draw(2 ** 10)
-    fig.savefig('output.svg')
-else:
-    print("Usage: {} [depth] [filename]")
-
-
+draw()
