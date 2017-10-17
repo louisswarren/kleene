@@ -1,3 +1,4 @@
+import sys
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
@@ -29,11 +30,21 @@ tree = kleene_tree()
 
 x_positions = {() : 0}
 
-def update(framenum):
-    node = next(tree)
-    x_positions[node] = plot_segment(node, x_positions[node[:-1]])
+def draw(n):
+    for k in range(n):
+        node = next(tree)
+        x_positions[node] = plot_segment(node, x_positions[node[:-1]])
+        if (k % 1000) == 0:
+            print("Plotting ... [{} / {}]".format(k, n))
 
 
-_ = FuncAnimation(fig, update, interval=1)
-plt.show()
+if len(sys.argv) == 3:
+    draw(2 ** int(sys.argv[1]))
+    fig.savefig(sys.argv[2])
+elif len(sys.argv) == 1:
+    draw(2 ** 10)
+    fig.savefig('output.svg')
+else:
+    print("Usage: {} [depth] [filename]")
+
 
