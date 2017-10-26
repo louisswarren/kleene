@@ -24,6 +24,7 @@ jumpPairs (BTJump : cmds) ctr (s : stack) = (ctr, s) : (s, ctr) :
 jumpPairs (BTJump : cmds) ctr []    = (ctr, 0) : (jumpPairs cmds (succ ctr) [])
 jumpPairs (FFJump : cmds) ctr stack = jumpPairs cmds (succ ctr) (ctr : stack)
 jumpPairs (_      : cmds) ctr stack = jumpPairs cmds (succ ctr) stack
+jumpPairs []              ctr (s : stack) = (s, 0) : (jumpPairs [] ctr stack)
 jumpPairs []              ctr []    = []
 
 
@@ -46,8 +47,10 @@ transition cmds jumps (State tape ptr ctr) = case (cmds !! ctr) of
 
 machineInternal :: [Cmd] -> Map Int Int -> State -> [Maybe Bool]
 machineInternal cmds jumps state@(State tape ptr ctr) =
-    let result = transition cmds jumps state
-    in  (snd result) : (machineInternal cmds jumps (fst result))
+    if (ctr < (length cmds))
+       then let result = transition cmds jumps state
+             in  (snd result) : (machineInternal cmds jumps (fst result))
+       else []
 
 machine :: [Cmd] -> [Bool] -> [Maybe Bool]
 machine cmds tape = machineInternal cmds (jumpMap cmds) (State tape 0 0)
@@ -74,6 +77,7 @@ computableFunc n m = machine (getProgram n) (getTape m)
 
 
 complement :: [Maybe Bool] -> [Maybe Bool]
+complement []                  = []
 complement ((Just True)  : xs) = Just False : (complement xs)
 complement ((Just False) : xs) = Just True  : (complement xs)
 complement (Nothing      : xs) = Nothing    : (complement xs)
@@ -84,6 +88,7 @@ nontotalFunc n = complement (computableFunc n n)
 
 
 bounded :: [Maybe Bool] -> Int -> Maybe Bool
+bounded []                  _ = Nothing
 bounded _                   0 = Nothing
 bounded ((Just True)  : xs) n = Just False
 bounded ((Just False) : xs) n = Just True
@@ -95,14 +100,32 @@ boundedFunc n k = bounded (nontotalFunc n) k
 
 
 
+kleeneRecur :: [Bool] -> [[Bool]]
+kleeneRecur parent =
+    let k = (length parent) + 1
+     in case (boundedFunc k k) of
+          Just True  -> [parent ++ [True]]
+          Just False -> [parent ++ [False]]
+          Nothing    -> [parent ++ [True], parent ++ [False]]
+
+kleeneConstruct :: [[Bool]] -> [[Bool]]
+kleeneConstruct (p : parents)
+  = let nodes = kleeneRecur p
+     in nodes ++ (kleeneConstruct (parents ++ nodes))
+
+kleeneTree :: [[Bool]]
+kleeneTree = kleeneConstruct [[]]
+
+showPath :: [Bool] -> String
+showPath []           = ""
+showPath (False : xs) = "0" ++ (showPath xs)
+showPath (True  : xs) = "1" ++ (showPath xs)
+
+showTree :: [[Bool]] -> String
+showTree (path : paths) = (showPath path) ++ "\n" ++ (showTree paths)
 
 
-
-
-
-
-
-main = putStrLn "Compiled"
+main = putStrLn (showTree kleeneTree)
 
 
 
