@@ -31,22 +31,18 @@ jumpMap :: [Cmd] -> Map Int Int
 jumpMap cmds = Map.fromList (jumpPairs cmds 0 [])
 
 jump :: Map Int Int -> Int -> Int
-jump jumps ctr = succ (fromJust (Map.lookup ctr jumps))
+jump jumps ctr = (fromJust (Map.lookup ctr jumps))
 
 transition :: Cmd -> Map Int Int -> State -> (State, Maybe Bool)
-transition cmd jumps s@(State tape ptr ctr) = case cmd of
+transition cmd jumps (State tape ptr ctr) = case cmd of
     Return -> (State tape              ptr       (succ ctr), Just (tape !! ptr))
     Toggle -> (State (toggle tape ptr) ptr       (succ ctr), Nothing)
     RShift -> (State tape              (ptr + 1) (succ ctr), Nothing)
     LShift -> (State tape              (ptr - 1) (succ ctr), Nothing)
-    FFJump -> (State tape              ptr       (if   (tape !! ptr)
-                                                  then (succ ctr)
-                                                  else (jump jumps ctr)
-                                                 )         , Nothing)
-    BTJump -> (State tape              ptr       (if   (tape !! ptr)
-                                                  then (jump jumps ctr)
-                                                  else (succ ctr)
-                                                 )         , Nothing)
+    FFJump -> (State tape              ptr       target,     Nothing)
+        where target = succ (if (tape !! ptr) then ctr else (jump jumps ctr))
+    BTJump -> (State tape              ptr       target,     Nothing)
+        where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
 
 main = putStrLn "Compiled"
 
