@@ -33,8 +33,8 @@ jumpMap cmds = Map.fromList (jumpPairs cmds 0 [])
 jump :: Map Int Int -> Int -> Int
 jump jumps ctr = (fromJust (Map.lookup ctr jumps))
 
-transition :: Cmd -> Map Int Int -> State -> (State, Maybe Bool)
-transition cmd jumps (State tape ptr ctr) = case cmd of
+transition :: [Cmd] -> Map Int Int -> State -> (State, Maybe Bool)
+transition cmds jumps (State tape ptr ctr) = case (cmds !! ctr) of
     Return -> (State tape              ptr       (succ ctr), Just (tape !! ptr))
     Toggle -> (State (toggle tape ptr) ptr       (succ ctr), Nothing)
     RShift -> (State tape              (ptr + 1) (succ ctr), Nothing)
@@ -43,6 +43,64 @@ transition cmd jumps (State tape ptr ctr) = case cmd of
         where target = succ (if (tape !! ptr) then ctr else (jump jumps ctr))
     BTJump -> (State tape              ptr       target,     Nothing)
         where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
+
+machineInternal :: [Cmd] -> Map Int Int -> State -> [Maybe Bool]
+machineInternal cmds jumps state@(State tape ptr ctr) =
+    let result = transition cmds jumps state
+    in  (snd result) : (machineInternal cmds jumps (fst result))
+
+machine :: [Cmd] -> [Bool] -> [Maybe Bool]
+machine cmds tape = machineInternal cmds (jumpMap cmds) (State tape 0 0)
+
+-- Awkward to match prior implementation
+getProgram :: Int -> [Cmd]
+getProgram 0 = [Return]
+getProgram 1 = [Toggle]
+getProgram 2 = [RShift]
+getProgram 3 = [LShift]
+getProgram 4 = [FFJump]
+getProgram 5 = [BTJump]
+getProgram n = (getProgram (quot n 6)) ++ (getProgram (rem n 6))
+
+
+getTape :: Int -> [Bool]
+getTape 0 = [False]
+getTape 1 = [True]
+getTape n = (getTape (quot n 2)) ++ (getTape (rem n 2))
+
+
+computableFunc :: Int -> Int -> [Maybe Bool]
+computableFunc n m = machine (getProgram n) (getTape m)
+
+
+complement :: [Maybe Bool] -> [Maybe Bool]
+complement ((Just True)  : xs) = Just False : (complement xs)
+complement ((Just False) : xs) = Just True  : (complement xs)
+complement (Nothing      : xs) = Nothing    : (complement xs)
+
+
+nontotalFunc :: Int -> [Maybe Bool]
+nontotalFunc n = complement (computableFunc n n)
+
+
+bounded :: [Maybe Bool] -> Int -> Maybe Bool
+bounded _                   0 = Nothing
+bounded ((Just True)  : xs) n = Just False
+bounded ((Just False) : xs) n = Just True
+bounded (Nothing      : xs) n = (bounded xs (n - 1))
+
+
+boundedFunc :: Int -> Int -> Maybe Bool
+boundedFunc n k = bounded (nontotalFunc n) k
+
+
+
+
+
+
+
+
+
 
 main = putStrLn "Compiled"
 
