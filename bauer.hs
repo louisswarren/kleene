@@ -50,12 +50,13 @@ transition cmds jumps (State tape ptr ctr) =
       Return -> (State extendedTape      ptr       (succ ctr), value)
           where extendedTape = extend tape ptr
                 value        = Just (extendedTape !! ptr)
-      Toggle -> (State (toggle tape ptr) ptr       (succ ctr), Nothing)
-      RShift -> (State tape              (ptr + 1) (succ ctr), Nothing)
-      LShift -> (State tape              (ptr - 1) (succ ctr), Nothing)
-      FFJump -> (State tape              ptr       target,     Nothing)
+      Toggle -> (State (toggle tape ptr) ptr        (succ ctr), Nothing)
+      RShift -> (State tape              (ptr + 1)  (succ ctr), Nothing)
+      LShift -> (State tape              shiftedPtr (succ ctr), Nothing)
+          where shiftedPtr = if (ptr > 0) then (ptr - 1) else 0
+      FFJump -> (State tape              ptr        target,     Nothing)
           where target = succ (if (tape !! ptr) then ctr else (jump jumps ctr))
-      BTJump -> (State tape              ptr       target,     Nothing)
+      BTJump -> (State tape              ptr        target,     Nothing)
           where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
 
 
