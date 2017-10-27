@@ -20,12 +20,6 @@ toggle []       n = toggle [False] n
 toggle (x : xs) 0 = (not x) : xs
 toggle (x : xs) n = x : (toggle xs (n - 1))
 
-extend :: [Bool] -> Int -> [Bool]
-extend tape     0 = tape
-extend []       n = False : (extend [] (n - 1))
-extend (x : xs) n = extend xs (n - 1)
-
-
 jumpPairs :: [Cmd] -> Int -> [Int] -> [(Int,Int)]
 jumpPairs (BTJump : cmds) ctr (s : stack) = (ctr, s) : (s, ctr) :
                                             (jumpPairs cmds (succ ctr) stack)
@@ -47,9 +41,8 @@ jump jumps ctr = (fromJust (Map.lookup ctr jumps))
 transition :: [Cmd] -> Map Int Int -> State -> (State, Maybe Bool)
 transition cmds jumps (State tape ptr ctr) =
     case (cmds !! ctr) of
-      Return -> (State extendedTape      ptr       (succ ctr), value)
-          where extendedTape = extend tape ptr
-                value        = Just (extendedTape !! ptr)
+      Return -> (State tape      ptr       (succ ctr), value)
+          where value        = Just (tape !! ptr)
       Toggle -> (State (toggle tape ptr) ptr        (succ ctr), Nothing)
       RShift -> (State tape              (ptr + 1)  (succ ctr), Nothing)
       LShift -> (State tape              shiftedPtr (succ ctr), Nothing)
@@ -64,7 +57,7 @@ machineInternal :: [Cmd] -> Map Int Int -> State -> [Maybe Bool]
 machineInternal cmds jumps state@(State tape ptr ctr) =
     if (ctr < (length cmds))
        then let result = transition cmds jumps state
-             in  (snd result) : (machineInternal cmds jumps (fst result))
+             in (snd result) : (machineInternal cmds jumps (fst result))
        else []
 
 
@@ -84,8 +77,8 @@ getProgram n = (getProgram (quot n 6)) ++ (getProgram (rem n 6))
 
 
 getTape :: Int -> [Bool]
-getTape 0 = [False]
-getTape 1 = [True]
+getTape 0 = False : (repeat False)
+getTape 1 = True : (repeat False)
 getTape n = (getTape (quot n 2)) ++ (getTape (rem n 2))
 
 
