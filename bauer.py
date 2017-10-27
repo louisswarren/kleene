@@ -70,7 +70,7 @@ def to_base(n, b):
 
 def get_prog(index):
     '''Get the program for a given index.'''
-    return ''.join(map(str, to_base(index, 5)))
+    return ''.join(map(str, to_base(index, 6)))
 
 
 def computable_function(n, m):
@@ -127,4 +127,5 @@ def kleene_tree():
 if __name__ == '__main__':
     for node in kleene_tree():
         print(''.join(map(str, node)))
+
 

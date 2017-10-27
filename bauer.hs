@@ -3,6 +3,7 @@ import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+
 data Cmd = Return
          | Toggle
          | RShift
@@ -10,7 +11,9 @@ data Cmd = Return
          | FFJump
          | BTJump
 
+
 data State = State [Bool] Int Int
+
 
 toggle :: [Bool] -> Int -> [Bool]
 toggle []       n = toggle [False] n
@@ -36,8 +39,10 @@ jumpPairs []              ctr []    = []
 jumpMap :: [Cmd] -> Map Int Int
 jumpMap cmds = Map.fromList (jumpPairs cmds 0 [])
 
+
 jump :: Map Int Int -> Int -> Int
 jump jumps ctr = (fromJust (Map.lookup ctr jumps))
+
 
 transition :: [Cmd] -> Map Int Int -> State -> (State, Maybe Bool)
 transition cmds jumps (State tape ptr ctr) =
@@ -53,6 +58,7 @@ transition cmds jumps (State tape ptr ctr) =
       BTJump -> (State tape              ptr       target,     Nothing)
           where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
 
+
 machineInternal :: [Cmd] -> Map Int Int -> State -> [Maybe Bool]
 machineInternal cmds jumps state@(State tape ptr ctr) =
     if (ctr < (length cmds))
@@ -60,8 +66,10 @@ machineInternal cmds jumps state@(State tape ptr ctr) =
              in  (snd result) : (machineInternal cmds jumps (fst result))
        else []
 
+
 machine :: [Cmd] -> [Bool] -> [Maybe Bool]
 machine cmds tape = machineInternal cmds (jumpMap cmds) (State tape 0 0)
+
 
 -- Awkward to match prior implementation
 getProgram :: Int -> [Cmd]
@@ -107,7 +115,6 @@ boundedFunc :: Int -> Int -> Maybe Bool
 boundedFunc n k = bounded (nontotalFunc n) k
 
 
-
 kleeneRecur :: [Bool] -> [[Bool]]
 kleeneRecur parent =
     let k = (length parent) + 1
@@ -116,18 +123,22 @@ kleeneRecur parent =
           Just False -> [parent ++ [False]]
           Nothing    -> [parent ++ [True], parent ++ [False]]
 
+
 kleeneConstruct :: [[Bool]] -> [[Bool]]
 kleeneConstruct (p : parents)
   = let nodes = kleeneRecur p
      in nodes ++ (kleeneConstruct (parents ++ nodes))
 
+
 kleeneTree :: [[Bool]]
 kleeneTree = kleeneConstruct [[]]
+
 
 showPath :: [Bool] -> String
 showPath []           = ""
 showPath (False : xs) = "0" ++ (showPath xs)
 showPath (True  : xs) = "1" ++ (showPath xs)
+
 
 showSeq :: [Maybe Bool] -> String
 showSeq []           = ""
@@ -135,11 +146,10 @@ showSeq (Just False : xs) = "0" ++ (showSeq xs)
 showSeq (Just True  : xs) = "1" ++ (showSeq xs)
 showSeq (Nothing    : xs) = "?" ++ (showSeq xs)
 
+
 showTree :: [[Bool]] -> String
 showTree (path : paths) = (showPath path) ++ "\n" ++ (showTree paths)
 
 
 main = putStrLn (showTree kleeneTree)
-
-
 
