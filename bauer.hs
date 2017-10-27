@@ -17,6 +17,11 @@ toggle []       n = toggle [False] n
 toggle (x : xs) 0 = (not x) : xs
 toggle (x : xs) n = x : (toggle xs (n - 1))
 
+extend :: [Bool] -> Int -> [Bool]
+extend tape     0 = tape
+extend []       n = False : (extend [] (n - 1))
+extend (x : xs) n = extend xs (n - 1)
+
 
 jumpPairs :: [Cmd] -> Int -> [Int] -> [(Int,Int)]
 jumpPairs (BTJump : cmds) ctr (s : stack) = (ctr, s) : (s, ctr) :
@@ -35,15 +40,18 @@ jump :: Map Int Int -> Int -> Int
 jump jumps ctr = (fromJust (Map.lookup ctr jumps))
 
 transition :: [Cmd] -> Map Int Int -> State -> (State, Maybe Bool)
-transition cmds jumps (State tape ptr ctr) = case (cmds !! ctr) of
-    Return -> (State tape              ptr       (succ ctr), Just (tape !! ptr))
-    Toggle -> (State (toggle tape ptr) ptr       (succ ctr), Nothing)
-    RShift -> (State tape              (ptr + 1) (succ ctr), Nothing)
-    LShift -> (State tape              (ptr - 1) (succ ctr), Nothing)
-    FFJump -> (State tape              ptr       target,     Nothing)
-        where target = succ (if (tape !! ptr) then ctr else (jump jumps ctr))
-    BTJump -> (State tape              ptr       target,     Nothing)
-        where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
+transition cmds jumps (State tape ptr ctr) =
+    case (cmds !! ctr) of
+      Return -> (State extendedTape      ptr       (succ ctr), value)
+          where extendedTape = extend tape ptr
+                value        = Just (extendedTape !! ptr)
+      Toggle -> (State (toggle tape ptr) ptr       (succ ctr), Nothing)
+      RShift -> (State tape              (ptr + 1) (succ ctr), Nothing)
+      LShift -> (State tape              (ptr - 1) (succ ctr), Nothing)
+      FFJump -> (State tape              ptr       target,     Nothing)
+          where target = succ (if (tape !! ptr) then ctr else (jump jumps ctr))
+      BTJump -> (State tape              ptr       target,     Nothing)
+          where target = succ (if (tape !! ptr) then (jump jumps ctr) else ctr)
 
 machineInternal :: [Cmd] -> Map Int Int -> State -> [Maybe Bool]
 machineInternal cmds jumps state@(State tape ptr ctr) =
@@ -120,6 +128,12 @@ showPath :: [Bool] -> String
 showPath []           = ""
 showPath (False : xs) = "0" ++ (showPath xs)
 showPath (True  : xs) = "1" ++ (showPath xs)
+
+showSeq :: [Maybe Bool] -> String
+showSeq []           = ""
+showSeq (Just False : xs) = "0" ++ (showSeq xs)
+showSeq (Just True  : xs) = "1" ++ (showSeq xs)
+showSeq (Nothing    : xs) = "?" ++ (showSeq xs)
 
 showTree :: [[Bool]] -> String
 showTree (path : paths) = (showPath path) ++ "\n" ++ (showTree paths)
